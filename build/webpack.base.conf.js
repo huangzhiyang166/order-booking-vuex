@@ -64,6 +64,20 @@ module.exports = {
           limit: 10000,
           name: utils.assetsPath('fonts/[name].[hash:7].[ext]')
         }
+      },
+      {
+        test : /\.sass|scss$/,
+        loader : ExtractTextPlugin.extract({
+            fallback: "style-loader",
+            use : ["css-loader","postcss-loader","sass-loader"]
+        })
+      },
+      {
+        test : /\.html|tpl|xtpl$/,
+        loader : "html-loader",
+        query : {
+            minimize: true
+        }
       }
     ]
   },
