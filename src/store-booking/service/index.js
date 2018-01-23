@@ -103,7 +103,7 @@ export async function getBookInfo({aid,pid}){
             reb_type : "1",
             refund_early_time : "0",
             refund_rule : "0",
-            startDate : "2018-01-22",
+            startDate : "2018-01-23",
             title : "联票景点",
             validTime : "0",
             validType : "0",
@@ -166,7 +166,8 @@ export async function getBookInfo({aid,pid}){
 }
 
 export async function getPriceAndStorage({pids,tids,aid,date}){
-    await delay(1000);
+    const time = date=="2018-01-23" ? 1000 : 1500;
+    await delay(time);
     const res = {
         "code": 200, 
         "data": {

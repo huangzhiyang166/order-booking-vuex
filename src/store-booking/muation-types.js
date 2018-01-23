@@ -1,0 +1,1 @@
+export const PAGE_READY = "page_ready";

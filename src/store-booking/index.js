@@ -1,7 +1,7 @@
 import Vue from "vue";
 import Vuex from "vuex";
 import * as actions from "./actions";
-import * as Types from "./actions/types";
+import * as Types from "./muation-types";
 import {Toast,Dialog} from "vant";
 const AJAX_ERROR_TEXT = "请求出错，请稍后重试";
 Vue.use(Vuex);
@@ -10,61 +10,43 @@ export default new Vuex.Store({
         pageReady : false,
         ticketList : [],
         bookInfo : {},
+        storePrice : {},
         aid : "",
-        pid : ""
+        pid : "",
+        curBeginDate : ""
     },
     getters : {
 
     },
     actions,
     mutations : {
-        [Types.PAGE_READY](state,payload){
+        [Types.PAGE_READY](state,{bookInfo,ticketList,storePrice}){
+
+            //算出startDate跟nextDate的最低价格
+            const startDate = bookInfo.startDate;
+            const nextDate = bookInfo.nextDate;
+            const startDatePriceStore = storePrice[startDate];
+            const nextDatePriceStore = storePrice[nextDate];
+            let startDatePrice = [];
+            let nextDatePrice = [];
+            for(var i in startDatePriceStore)startDatePrice.push(startDatePriceStore[i].price * 1);
+            for(var s in nextDatePriceStore) nextDatePrice.push(nextDatePriceStore[s].price * 1);
+
+            //-1代表当天未设置价格
+            const startDate_minPrice = startDatePrice.length>0 ? startDatePrice.sort((a,b) => (a-b))[0] : -1;
+            const nextDate_minPrice = nextDatePrice.length>0 ? nextDatePrice.sort((a,b)=> (a-b))[0] : -1;
+            bookInfo["startDate_minPrice"] = startDate_minPrice;
+            bookInfo["nextDate_minPrice"] = nextDate_minPrice;
+
             state.pageReady = true;
-            if(!payload) return false;
-
-            let landData = payload.landData;
-            let changciList = landData.show_round_list;
-            let ticketList = payload.ticketListData;
-
-            state.landInfo = landData;
+            state.bookInfo = bookInfo;
             state.ticketList = ticketList;
-            state.curPlayDate = landData.show_start_date;
-            if(changciList && changciList.length>0){
-                state.curChangciID = changciList[0].round_id;
-            }
+            state.storePrice = storePrice;
 
-            state.aids = ticketList.map(item=>item.aid).join(",");
-            state.pids = ticketList.map(item=>item.pid).join(",");
-            state.zoneIDs = ticketList.map(item=>item.zone_id).join(",");
-            state.changciList = [...landData.show_round_list];
+            
+
+
         },
-        [Types.SWITCH_CHANGCI_LIST](state,{changciList}){
-            state.changciList = [...changciList];
-            if(!changciList || changciList.length==0){ //如果当天没有场次,需要ticketList里库存重置为0
-                state.ticketList.forEach((item)=>{
-                    const storage = item.storage;
-                    if(typeof storage!=="undefined"){
-                        item.storage = 0;
-                    }
-                })
-            }
-        },
-        [Types.SWITCH_CHANGCI](state,{changciID,storageList}){
-            state.curChangciID = changciID;
-            const ticketList = state.ticketList;
-            let newTicketList = [];
-            ticketList.forEach((item,index)=>{
-                const pid = item.pid;
-                const aid = item.aid;
-                const storageItem = storageList.find(item=>(item.aid==aid&&item.pid==pid)) || {};
-                const storage = storageItem.storage;
-                if(typeof storage!=="undefined"){
-                    newTicketList.push({...item,storage:storage});
-                }else{
-                    newTicketList.push({...item,storage:0});
-                }
-            })
-            state.ticketList = newTicketList;
-        }
     }
 })
+
